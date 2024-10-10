@@ -62,17 +62,12 @@ Our first step is to recognize when an expression (for example the goal) is of t
 #check Expr.eq? -- Expr → Option (Expr × Expr × Expr)
 #check Expr.app2? -- Expr → Name → Option (Expr × Expr)
 
-#check @GT.gt Real
-#expr [@GT.gt Real]
-#expr [Nat.zero ≤ Nat.zero]
-
 def matchLe (e: Expr) :
     MetaM <| Option (Expr × Expr) := do
-  let nat := mkConst ``Real
-  let a ← mkFreshExprMVar nat
-  let b ← mkFreshExprMVar nat
-  let le := Lean.Expr.app (Lean.Expr.const `GT.gt [Lean.Level.zero]) (Lean.Expr.const `Real [])
-  let ineq ← mkAppM ``Nat.le #[a, b]
+  let real := mkConst ``Real
+  let a ← mkFreshExprMVar real
+  let b ← mkFreshExprMVar real
+  let ineq ← mkAppM `LE.le #[a, b]
   logInfo m!"Trying to match {ineq} with {e}"
   if ← isDefEq ineq e then
     return some (a, b)
@@ -95,10 +90,10 @@ elab "match_le_hyp" t:term : tactic =>
   | none =>
     logWarning m!"Main target not of the correct form"
 
-example (x y: Real)(h : x ≥ y) : x > y := by
+example (x y: Real)(h : x ≤ y) : x > y := by
   match_le
   match_le_hyp h
-  assumption
+  sorry
 
 elab "rw_le" t:term : tactic =>
   withMainContext do
