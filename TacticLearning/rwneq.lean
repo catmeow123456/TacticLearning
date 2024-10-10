@@ -1,5 +1,6 @@
 import Lean
 import Mathlib.Data.Real.Basic
+import Mathlib.Algebra.Group.Subgroup.Basic
 open Lean Meta Elab Tactic
 
 
@@ -47,171 +48,121 @@ Lean.Syntax.ident : SourceInfo → Substring → Name → List Syntax.Preresolve
 #stx [1 + 2]
 #expr [fun n : Nat => n]
 
-
-
-
-/-!
-## Rewriting with Inequalities: `rw_le`
-
-We now give a more substantial example. This can be done with just macros, but we will use metaprogramming to illustrate the principles.
-
-The tactic `rw_le h` works if the goal is of the form `a ≤ b` and `h` is a proof of `c ≤ d`, with `a`, `b`, `c` and `d` all natural numbers. If `a = c` or `b = d` or both, then it rewrites the goal.
-
-Our first step is to recognize when an expression (for example the goal) is of the correct form.
--/
 #check Expr.eq? -- Expr → Option (Expr × Expr × Expr)
 #check Expr.app2? -- Expr → Name → Option (Expr × Expr)
 
+#expr[Type]
+#eval ppExpr (Lean.Expr.sort (Lean.Level.succ (Lean.Level.zero)))
+
+#expr[∀ {α : Type} [_h:LE α], ∀ {a b: α}, LE.le a b]
+#eval ppExpr (Lean.Expr.forallE `α (Lean.Expr.sort (Lean.Level.succ (Lean.Level.zero))) (Lean.Expr.forallE `_h (Lean.Expr.app (Lean.Expr.const `LE [Lean.Level.zero]) (Lean.Expr.bvar 0)) (Lean.Expr.forallE `a (Lean.Expr.bvar 1) (Lean.Expr.forallE `b (Lean.Expr.bvar 2) (Lean.Expr.app (Lean.Expr.app (Lean.Expr.app (Lean.Expr.app (Lean.Expr.const `LE.le [Lean.Level.zero]) (Lean.Expr.bvar 3)) (Lean.Expr.bvar 2)) (Lean.Expr.bvar 1)) (Lean.Expr.bvar 0)) (Lean.BinderInfo.implicit)) (Lean.BinderInfo.implicit)) (Lean.BinderInfo.instImplicit)) (Lean.BinderInfo.implicit))
+
 def matchLe (e: Expr) :
-    MetaM <| Option (Expr × Expr) := do
-  let real := mkConst ``Real
-  let a ← mkFreshExprMVar real
-  let b ← mkFreshExprMVar real
-  let ineq ← mkAppM `LE.le #[a, b]
-  logInfo m!"Trying to match {ineq} with {e}"
+    MetaM <| Option (Expr × Expr × Expr) := do
+  let type := Lean.Expr.sort (Lean.Level.succ (Lean.Level.zero))
+  let m1 ← mkFreshExprMVar type -- Type
+  let m2 ← mkFreshExprMVar (Lean.Expr.app (Lean.Expr.const `LE [Lean.Level.zero]) m1) -- inst
+  let le := (Lean.Expr.app (Lean.Expr.app (Lean.Expr.const `LE.le [Lean.Level.zero]) m1) m2)
+  let a ← mkFreshExprMVar m1
+  let b ← mkFreshExprMVar m1
+  let ineq := Lean.Expr.app (Lean.Expr.app le a) b
   if ← isDefEq ineq e then
-    return some (a, b)
+    return some (a, b, m2)
   else
     return none
 
-elab "match_le" : tactic => withMainContext do
-  match ← matchLe (← getMainTarget) with
-  | some (a, b) =>
-    logInfo m!"Matched inequality; a = {a}, b = {b}"
-  | none =>
-    logWarning m!"Main target not of the correct form"
+def matchLt (e: Expr) :
+    MetaM <| Option (Expr × Expr × Expr) := do
+  let type := Lean.Expr.sort (Lean.Level.succ (Lean.Level.zero))
+  let m1 ← mkFreshExprMVar type -- Type
+  let m2 ← mkFreshExprMVar (Lean.Expr.app (Lean.Expr.const `LT [Lean.Level.zero]) m1) -- inst
+  let lt := (Lean.Expr.app (Lean.Expr.app (Lean.Expr.const `LT.lt [Lean.Level.zero]) m1) m2)
+  let a ← mkFreshExprMVar m1
+  let b ← mkFreshExprMVar m1
+  let ineq := Lean.Expr.app (Lean.Expr.app lt a) b
+  if ← isDefEq ineq e then
+    return some (a, b, m2)
+  else
+    return none
 
-elab "match_le_hyp" t:term : tactic =>
+elab "match_le_or_lt" : tactic => withMainContext do
+  let goal ← getMainTarget
+  match ← matchLe goal with
+  | some (a, b, inst) =>
+    logInfo m!"Matched inequality (a ≤ b); a = {a}, b = {b}, inst = {inst}"
+  | none =>
+    match ← matchLt goal with
+    | some (a, b, inst) =>
+      logInfo m!"Matched inequality (a < b); a = {a}, b = {b}, inst = {inst}"
+    | none => logWarning m!"Main target not of the correct form"
+
+elab "match_le_or_lt_hyp" t:term : tactic =>
   withMainContext do
   let h ← elabTerm t none
-  match ← matchLe (← inferType h) with
-  | some (a, b) =>
-    logInfo m!"Matched inequality; a = {a}, b = {b}"
+  let hType ← inferType h
+  match ← matchLe hType with
+  | some (a, b, inst) =>
+    logInfo m!"Matched inequality (a ≤ b); a = {a}, b = {b}, inst = {inst}"
   | none =>
-    logWarning m!"Main target not of the correct form"
+    match ← matchLt hType with
+    | some (a, b, inst) =>
+      logInfo m!"Matched inequality (a < b); a = {a}, b = {b}, inst = {inst}"
+    | none => logWarning m!"Main target not of the correct form"
 
-example (x y: Real)(h : x ≤ y) : x > y := by
-  match_le
-  match_le_hyp h
+set_option linter.unusedTactic false in
+example (x y: Nat)(h : 2+1 < 12) : 1+2 > 2 := by
+  match_le_or_lt
+  match_le_or_lt_hyp h
   sorry
 
-elab "rw_le" t:term : tactic =>
-  withMainContext do
-    let h ← elabTerm t none
-    let hType ← inferType h
-    let target ← getMainTarget
-    match ← matchLe hType, ← matchLe target with
-    | some (a, b), some (c, d) =>
-      let firstEq ← isDefEq a c
-      let secondEq ← isDefEq b d
-      if firstEq && secondEq then
-        closeMainGoal `rw_le h
-      else
-      if firstEq then
-        -- have `a = c`, so `h` is `c ≤ b` and we need `b ≤ d`
-        let newTarget ← mkAppM ``Nat.le #[b, d]
-        let newGoal ← mkFreshExprMVar newTarget
-        let proof ← mkAppM ``Nat.le_trans #[h, newGoal]
-        let goal ← getMainGoal
-        goal.assign proof
-        replaceMainGoal [newGoal.mvarId!]
-      else
-      if secondEq then
-        -- have `b = d`, so `h` is `a ≤ d` and we need `c ≤ a`
-        let newTarget ← mkAppM ``Nat.le #[c, a]
-        let newGoal ← mkFreshExprMVar newTarget
-        let proof ← mkAppM ``Nat.le_trans #[newGoal, h]
-        let goal ← getMainGoal
-        goal.assign proof
-        replaceMainGoal [newGoal.mvarId!]
-      else
-        throwError "Neither ends matched"
-    | _, _ =>
-      throwError "Did not get inequalities"
-
-
-example (x y z : Nat) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ z :=
-  by
-    rw_le h₁
-    exact h₂
-
-example (x y z : Nat) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ z :=
-  by
-    rw_le h₂
-    exact h₁
-
-
-example (x y z : Nat) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ y :=
-  by
-    rw_le h₁
-
-
-
-/-
-⊢ (MVarId → MetaM (List MVarId)) → TacticM Unit
--/
-#check liftMetaTactic
-
-/-
-⊢ MVarId →
-  Expr →
-    optParam ApplyConfig
-        { newGoals := ApplyNewGoals.nonDependentFirst, synthAssignedInstances := true, allowSynthFailures := false,
-          approx := true } →
-      MetaM (List MVarId)
--/
-#check MVarId.apply
+#check TacticM
 
 def Lean.MVarId.rewriteLeM (goal: MVarId) (h: Expr) :
     MetaM <| List MVarId :=
-    goal.withContext do
-      let hType ← inferType h
-      let target ← goal.getType
-      match ← matchLe hType, ← matchLe target with
-      | some (a, b), some (c, d) =>
-        let firstEq ← isDefEq a c
-        let secondEq ← isDefEq b d
-        if firstEq && secondEq then
-          goal.assign h
-          return []
-        else
-        if firstEq then
-          -- have `a = c`, so `h` is `c ≤ b` and we need `b ≤ d`
-          let newTarget ← mkAppM ``Nat.le #[b, d]
-          let newGoal ← mkFreshExprMVar newTarget
-          let proof ← mkAppM ``Nat.le_trans #[h, newGoal]
-          goal.assign proof
-          return [newGoal.mvarId!]
-        else
-        if secondEq then
-          -- have `b = d`, so `h` is `a ≤ d` and we need `c ≤ a`
-          let newTarget ← mkAppM ``Nat.le #[c, a]
-          let newGoal ← mkFreshExprMVar newTarget
-          let proof ← mkAppM ``Nat.le_trans #[newGoal, h]
-          goal.assign proof
-          return [newGoal.mvarId!]
-        else
-          throwError "Neither ends matched"
-      | _, _ =>
-        throwError "Did not get inequalities"
+  goal.withContext do
+  let hType ← inferType h
+  let target ← goal.getType
+  match ← matchLe hType, ← matchLe target with
+  | some (a, b, _), some (c, d, _) =>
+    let firstEq ← isDefEq a c
+    let secondEq ← isDefEq b d
+    if firstEq && secondEq then
+      goal.assign h
+      return []
+    else
+    if firstEq then
+      -- have `a = c`, so `h` is `c ≤ b` and we need `b ≤ d`
+      let newTarget ← mkAppM ``LE.le #[b, d]
+      let newGoal ← mkFreshExprMVar newTarget
+      let proof ← mkAppM ``LE.le.trans #[h, newGoal]
+      goal.assign proof
+      return [newGoal.mvarId!]
+    else
+    if secondEq then
+      -- have `b = d`, so `h` is `a ≤ d` and we need `c ≤ a`
+      let newTarget ← mkAppM ``LE.le #[c, a]
+      let newGoal ← mkFreshExprMVar newTarget
+      let proof ← mkAppM ``LE.le.trans #[newGoal, h]
+      goal.assign proof
+      return [newGoal.mvarId!]
+    else
+      throwError "Neither ends matched"
+  | _, _ =>
+    throwError "Did not get inequalities"
 
-
-elab "rw_leq" t:term : tactic => do
+elab "rw_le" t:term : tactic => do
   let h ← elabTerm t none
   liftMetaTactic fun goal => goal.rewriteLeM h
 
 
-example (x y z : Nat) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ z :=
-  by
-    rw_leq h₁
-    exact h₂
+example (x y z : Int) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ z := by
+  rw_le h₁
+  exact h₂
 
-example (x y z : Nat) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ z :=
-  by
-    rw_leq h₂
-    exact h₁
+example (x y z : Real) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ z := by
+  rw_le h₂
+  exact h₁
 
-
-example (x y z : Nat) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ y :=
-  by
-    rw_leq h₁
+example {G : Type} [Group G] (x y z : Subgroup G) (h₁ : x ≤ y) (h₂ : y ≤ z) : x ≤ z := by
+  rw_le h₁
+  exact h₂
