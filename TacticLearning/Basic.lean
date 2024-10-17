@@ -1,1 +1,2 @@
-def hello := "world"
+import «TacticLearning».diyassumption
+import «TacticLearning».rwneq
