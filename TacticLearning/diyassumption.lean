@@ -20,8 +20,14 @@ def Lean.MVarId.assumpt (mvarId : MVarId) : MetaM Unit :=
   unless (← mvarId.assumptCore) do
     throwErr `assumption mvarId
 
-def evalAssumption : Tactic := fun _ =>
+elab "diyAssumption" : tactic => do
   liftMetaTactic fun mvarId => do mvarId.assumpt; pure []
 
 theorem test (h : 1 ≤ 2) : 1 ≤ 2 := by
-  assumption
+  diyAssumption
+
+def foo (n : Nat) : Nat := by
+  diyAssumption
+
+def test2 (h : Nat -> Nat): Nat -> Nat := by
+  diyAssumption
