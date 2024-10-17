@@ -1,3 +1,10 @@
+# General information about the project
+Project title (My formalization project): Tactic Learning
+Author (use \and to separate authors if needed) (catmeow123456): Cat in PKU
+URL of GitHub repository (https://github.com/catmeow123456/TacticLearning): 
+URL of project website (https://catmeow123456.github.io/TacticLearning): 
+URL of project API documentation (https://catmeow123456.github.io/TacticLearning/docs)
+
 # TacticLearning
 
 ## TODO list
