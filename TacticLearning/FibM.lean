@@ -21,24 +21,25 @@ structure State (s α: Type) where
 #check StateM
 
 namespace State
+variable {s α: Type}
 def get : State s s := ⟨fun s => (s, s)⟩
 def update (f: s → s) : State s Unit := ⟨fun s => ((), f s)⟩
 
 def run'[Inhabited s](x: State s α) (s: s := default) : α := (x.run s).1
-end State
+
 
 instance : Monad (State s) where
   pure x := ⟨fun s => (x, s)⟩
   bind x f := ⟨fun s =>
     let (a, s') := x.run s
     (f a).run s'⟩
-open State
 
 instance [rep : Repr α][Inhabited s] : Repr (State s α) :=
   ⟨fun mx n => rep.reprPrec mx.run' n⟩
 
+end State
 
-
+open State
 /-!
 ## The `FibM` State Monad
 -/
