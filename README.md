@@ -12,10 +12,11 @@ URL of project API documentation (https://catmeow123456.github.io/TacticLearning
 | 进度 | 文件名   | 内容  |
 | :--: | :--:    | :--: |
 | T | rwneq | 对条件或目标检查是否是任意类型的不等式，如果是，则进行不等式传递的化简 |
-| F  | assumption |  尝试将所有条件和 goal 匹配 |
+| T | assumption |  尝试将所有条件和 goal 匹配 |
 | F | neqsimp1 | 自动检查条件中的不等式是否可以通过传递性证明 goal |
 | F | apply | 给定 a -> b  和 b，将目标转换成 a |
-
+| F | coeff_one | Given a polynomial, return coefficient of linear prop
+| F | exact_or_symm | Given a statement, try to close the goal with that or with its symm
 
 ## Reference
 
