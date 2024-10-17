@@ -3,7 +3,7 @@ import Mathlib
 
 open Lean Meta Elab Tactic
 
-def throwErr (tacticName : Name) (mvarId : MVarId)
+def throwErr {α: Type} (tacticName : Name) (mvarId : MVarId)
     (msg? : Option MessageData := none) : MetaM α :=
   match msg? with
   | none => throwError "tactic '{tacticName}' failed\n{mvarId}"
