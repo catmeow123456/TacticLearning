@@ -16,7 +16,7 @@ URL of project API documentation (https://catmeow123456.github.io/TacticLearning
 | F | neqsimp1 | 自动检查条件中的不等式是否可以通过传递性证明 goal |
 | F | apply | 给定 a -> b  和 b，将目标转换成 a |
 | F | coeff_one | Given a polynomial, return coefficient of linear prop
-| F | exact_or_symm | Given a statement, try to close the goal with that or with its symm
+| T | myExactSymm | Given a statement, try to close the goal with that or with its symm
 
 ## Reference
 
