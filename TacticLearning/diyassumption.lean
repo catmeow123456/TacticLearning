@@ -180,6 +180,29 @@ elab "myExactSymm" t:term : tactic => withMainContext do
       logUnassignedAndAbort (← filterOldMVars (← getMVars symm) mvarCounterSaved)
       return symm
 
-example (h : 42 = 1) : 1 = 42 := by myExactSymm h
+example (h : 42 = 1) : 1 = 42 := by
+  myExactSymm h
 
 #check Expr.const `Nat
+
+elab "myAssumption" : tactic => withMainContext do
+  let hyps ← getLocalHyps
+  for h in hyps do
+    try
+      closeMainGoalUsing `myExact fun _ => do
+        let mvarCounterSaved := (← getMCtx).mvarCounter
+        logUnassignedAndAbort (← filterOldMVars (← getMVars h) mvarCounterSaved)
+        logInfo m!"{h}"
+
+        return h
+    catch _ =>
+      done
+
+example (h : 42 = 1) (h : 9 = 8) : 42 = 1 := by
+  myAssumption
+
+-- example (h : 42 = 1) (g : 8 = 9) : 1 = 42 := by myAssumption
+
+open Polynomial
+
+example : (1 + X : ℤ[X]).degree = 1 := by compute_degree!
