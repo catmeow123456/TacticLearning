@@ -22,9 +22,14 @@ elab "#expr" "[" t:term "]" : command =>
 #check MetaM -- ReaderT Context $ StateRefT State CoreM
 #check CoreM -- ReaderT Context $ StateRefT State (EIO Exception)
 
+-- meta variable   `MVarId`    ? : SomeType
+-- free variable   `FVarId`    h : SomeType
+-- use `mkFVar`/`mkMVar` or `Expr.fvar`/`.mvar` to transform a `FVarId`/`MVarId` into an Expr
+
+
 #check isDefEq
 /--
-Return a list of local declarations
+Return an array of local declarations (`FVarId`)
 whose type is definitionally equal to `type`.
 -/
 def ListLocalDeclWithType? (type : Expr) : MetaM (Array FVarId) := do
@@ -46,25 +51,23 @@ elab "elabterm" t:term : tactic => do
   logInfo m!"Message Data: {t}"; logInfo s!"String Data: {t}"
   pure ()
 
-#check TacticM
+def FvarIdsToMessageData (fvarIds: Array FVarId) : MetaM MessageData :=
+  fvarIds.foldl (init := do pure "")
+    fun s fvarId => do
+      let fvar: Expr := .fvar fvarId
+      let fvartype: Expr := (← inferType fvar)
+      pure ((← s) ++ " " ++ m!"{fvar}: {fvartype}\n")
 
-elab "showtype" t:term : tactic => do
-  let t ← Term.elabTerm t none
-  liftMetaTactic fun mvarId => do
-    let result: Array FVarId ← ListLocalDeclWithType? t
-    match result with
-    | #[] => throwError "No local declaration with type {t}"
-    | _ =>
-      let msg: MessageData ← result.foldl (init := do pure "")
-        fun s fvarId => do
-          let fvar: Expr := .fvar fvarId
-          pure ((← s) ++ " " ++ m!"{fvar}")
-      logInfo (m!"Local declarations with type {t}:\n" ++ msg)
-      return [mvarId]
+partial def showtypedef : Syntax → TacticM Unit := fun `(term| $t) => do
+  let expr ← Term.elabTerm t none
+  let result: Array FVarId ← ListLocalDeclWithType? expr
+  match result with
+  | #[] => throwError "No local declaration with type {t}"
+  | _ => logInfo (
+      m!"Local declarations with type {t}:\n" ++
+      (← FvarIdsToMessageData result))
 
--- meta variable   MVarId    ? : SomeType
--- free variable   FVarId    h : SomeType
--- use mkFVar/mkMVar or Expr.fvar/.mvar to transform a FVarId/MVarId into an Expr
+elab "showtype" t:term : tactic => showtypedef t
 
 example (h h2: 1 = 2) (w₁ w₂ : Nat) (hw: w₁ = w₂)
   (h₁ : ∀ i : Nat, i < i + 1) (h₂ : ∀ j₁ j₂ : List Nat, j₁ ++ j₂ = j₂ ++ j₁)
