@@ -44,8 +44,8 @@ def Lean.MVarId.assumpt (mvarId : MVarId) : MetaM Unit :=
   unless (← mvarId.assumptCore) do
     throwErr `assumption mvarId
 
-/-
-将 diyAssumption 解释为一个 tactic，它调用 assumpt
+/--
+  将 diyAssumption 解释为一个 tactic，它调用 assumpt
 -/
 elab "diyAssumption" : tactic => do
   liftMetaTactic fun mvarId => do mvarId.assumpt; pure []

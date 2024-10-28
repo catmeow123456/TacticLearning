@@ -17,7 +17,7 @@ URL of project API documentation (https://catmeow123456.github.io/TacticLearning
 | F | apply | 给定 a -> b  和 b，将目标转换成 a |
 | F | coeff_one | Given a polynomial, return coefficient of linear prop
 | T | myExactSymm | Given a statement, try to close the goal with that or with its symm
-| T | showtype | 给定一个类型，返回与该类型匹配的所有假设。有用的函数： `ListLocalDeclWithType?` 与 `FvarIdsToMessageData`
+| T | showtype | 给定一个类型，返回与该类型匹配的所有假设。有用的函数： `ListLocalDeclWithType` 与 `FvarIdsToMessageData`
 
 ## Reference
 
