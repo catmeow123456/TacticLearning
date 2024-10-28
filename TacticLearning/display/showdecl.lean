@@ -32,7 +32,7 @@ elab "#expr" "[" t:term "]" : command =>
 Return an array of local declarations (`FVarId`)
 whose type is definitionally equal to `type`.
 -/
-def ListLocalDeclWithType? (type : Expr) : MetaM (Array FVarId) := do
+def ListLocalDeclWithType (type : Expr) : MetaM (Array FVarId) := do
   let list_change: MetaM $ Array FVarId :=
     (← getLCtx).foldl (init := do pure #[]) fun lst decl =>
       if decl.isImplementationDetail then
@@ -60,7 +60,7 @@ def FvarIdsToMessageData (fvarIds: Array FVarId) : MetaM MessageData :=
 
 partial def showtypedef : Syntax → TacticM Unit := fun `(term| $t) => do
   let expr ← Term.elabTerm t none
-  let result: Array FVarId ← ListLocalDeclWithType? expr
+  let result: Array FVarId ← ListLocalDeclWithType expr
   match result with
   | #[] => throwError "No local declaration with type {t}"
   | _ => logInfo (
@@ -71,13 +71,16 @@ elab "showtype" t:term : tactic => showtypedef t
 
 example (h h2: 1 = 2) (w₁ w₂ : Nat) (hw: w₁ = w₂)
   (h₁ : ∀ i : Nat, i < i + 1) (h₂ : ∀ j₁ j₂ : List Nat, j₁ ++ j₂ = j₂ ++ j₁)
+  (h₃ : ∃ x : Nat, x > 0) (h₄ : (i:Type) × (i → i))
     : False := by
   elabterm (1:Nat)
-  elabterm (w₁)
+  elabterm (w₁ + w₂)
   elabterm (h)
   elabterm (1 :: [2])
   showtype (1 = _)
   showtype (Nat)
   showtype _ = _
-  showtype ∀ _:_, _
+  showtype ∀ _, _
+  showtype ∃ _, _
+  showtype Σ _, _
   stop {}
