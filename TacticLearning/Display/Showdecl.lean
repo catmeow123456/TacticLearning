@@ -17,10 +17,33 @@ elab "#expr" "[" t:term "]" : command =>
 #expr[Nat]
 #check Lean.Expr.const
 
--- meta variable   `MVarId`    ? : SomeType
--- free variable   `FVarId`    h : SomeType
--- use `mkFVar`/`mkMVar` or `Expr.fvar`/`.mvar` to transform a `FVarId`/`MVarId` into an Expr
 
+/-!
+
+# Syntax
+In Lean, `Syntax` is a datatype that represents surface-level syntax trees.
+One can use ``(abcd | efgh)` to use the parser `abcd` and get the syntax tree `efgh`.
+  for example, ``(term| 1 + 2)`` will be parsed as a simple arithmetic expression.
+  for example, ``(tactic| exact rfl)`` will be parsed as a tactic script.
+And then, one can use `Term.elabterm` to elaborate the syntax tree into an `Expr`.
+The elaborated `Expr` can be further processed by tactics.
+-/
+
+/-!
+# Expr
+In Lean, an `Expr` is a datatype that represents fully elaborated expressions,
+including terms, types, sorts, and so on.
+
+`FVarId` and `MVarId` are two important components of `Expr`.
+In a tactic proof state, there are multiple local declarations (free variables `FvarId`) and
+multiple unsolved subgoals (meta variables `MVarId`) in the context. The final goal is to complete
+all the subgoals, i.e. to assign a value to each meta variable.
+
+· meta variable   `MVarId`    ? : SomeType
+· free variable   `FVarId`    h : SomeType
+
+One can use `mkFVar`/`mkMVar` or `Expr.fvar`/`.mvar` to build an atomic expr from a `FVarId`/`MVarId`.
+-/
 
 #check isDefEq
 /--

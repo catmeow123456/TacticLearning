@@ -172,13 +172,15 @@ elab "myExactSymm" t:term : tactic => withMainContext do
       let r ← elabTermEnsuringType t type
       logUnassignedAndAbort (← filterOldMVars (← getMVars r) mvarCounterSaved)
       return r
-  catch _ =>
-    closeMainGoalUsing `myExact fun _ => do
-      let r ← elabTerm t none
+  catch _ => try
+    liftMetaTactic1 fun g => g.applySymm
+    closeMainGoalUsing `myExact fun type => do
       let mvarCounterSaved := (← getMCtx).mvarCounter
-      let symm ← r.applySymm
-      logUnassignedAndAbort (← filterOldMVars (← getMVars symm) mvarCounterSaved)
-      return symm
+      let r ← elabTermEnsuringType t type
+      logUnassignedAndAbort (← filterOldMVars (← getMVars r) mvarCounterSaved)
+      return r
+  catch _ =>
+    logInfo "myExactSymm failed"
 
 example (h : 42 = 1) : 1 = 42 := by
   myExactSymm h
@@ -186,22 +188,23 @@ example (h : 42 = 1) : 1 = 42 := by
 #check Expr.const `Nat
 
 elab "myAssumption" : tactic => withMainContext do
-  let hyps ← getLocalHyps
-  for h in hyps do
-    try
-      closeMainGoalUsing `myExact fun _ => do
-        let mvarCounterSaved := (← getMCtx).mvarCounter
-        logUnassignedAndAbort (← filterOldMVars (← getMVars h) mvarCounterSaved)
-        logInfo m!"{h}"
+  try
+    evalTactic (← `(tactic|diyAssumption))
+  catch _ => try
+    liftMetaTactic1 fun g => g.applySymm
+    evalTactic (← `(tactic|diyAssumption))
+  catch _ => throwError "myAssumption failed"
 
-        return h
-    catch _ =>
-      done
-
-example (h : 42 = 1) (h : 9 = 8) : 42 = 1 := by
+example (h₂ : 9 = 8) (h₁ : 1 = 42): 42 = 1 ∧ 1 = 42 := by
+  constructor
+  · myAssumption
   myAssumption
 
--- example (h : 42 = 1) (g : 8 = 9) : 1 = 42 := by myAssumption
+example (g : 8 = 9) (h : ∀ i:Nat, i = 1) : 1 = 42 := by
+  let w : 1 = 42 := sorry
+  myExactSymm g
+  -- myExactSymm w
+  myExactSymm (h _)
 
 open Polynomial
 

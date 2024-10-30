@@ -1,4 +1,4 @@
-import «TacticLearning».display.Basic
+import «TacticLearning».Display.Basic
 
 example (a b c : Prop)
   (h₁: a → b) (h₂: b → c): a → c := by
