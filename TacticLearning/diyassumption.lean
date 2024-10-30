@@ -1,5 +1,6 @@
-import Lean
-import Mathlib
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic.ComputeDegree
+import Mathlib.Algebra.Polynomial.Degree.Lemmas
 import Lean.Elab.Tactic.Location
 
 open Lean Meta Elab Tactic
