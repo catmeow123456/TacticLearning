@@ -7,9 +7,9 @@ open Lean Meta Elab Tactic
 
 # Syntax
 In Lean, `Syntax` is a datatype that represents the abstract syntax tree of a Lean expression.
-One can use ```(abcd | efgh)`` to use the parser `abcd` and get the syntax tree `efgh`.
-  for example, ```(term| 1 + 2)`` will be parsed as a simple arithmetic expression.
-  for example, ```(tactic| exact rfl)`` will be parsed as a tactic script.
+One can use ````(abcd | efgh)``` to use the parser `abcd` and get the syntax tree `efgh`.
+  for example, ````(term| 1 + 2)``` will be parsed as a simple arithmetic expression.
+  for example, ````(tactic| exact rfl)``` will be parsed as a tactic script.
 And then, one can use `Term.elabterm` to elaborate the syntax tree into an `Expr`.
 The elaborated `Expr` can be further processed by tactics.
 
