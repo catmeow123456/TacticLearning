@@ -33,7 +33,6 @@ elab "addhyp" name:ident ":" "coeff" id:term "of" t:term: tactic => do
   modify fun _ => { goals := goals }
   (← getMainGoal).withContext do
     evalTactic (← `(tactic|try simp))
-    logInfo m!"Goal 1: {← getMainTarget}"
     evalTactic (← `(tactic|try rw [Polynomial.coeff_eq_zero_of_degree_lt (by simp)]))
     evalTactic (← `(tactic|try conv at $name => rhs; norm_num))
     evalTactic (← `(tactic|repeat rfl))
@@ -49,6 +48,6 @@ example : (2*X + X^2: Polynomial ℤ).coeff 1 = 2 := by
 
 example : (2*X + X^2 + X^3 - 2 * X^2: Polynomial ℤ).coeff 2 = -1 := by
   addhyp apple : coeff 2 of (2*X + X^2 + X^3 - 2 * X^2 : ℤ[X])
+  addhyp apple2 : coeff 1 of (2*X + X^2 + X^3 - 2 * X^2 : ℤ[X])
+  addhyp apple3 : coeff 10 of (2*X + X^2 + X^3 - 2 * X^2 : ℤ[X])
   exact apple
-
-#check coeff_eq_zero_of_degree_lt

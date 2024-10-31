@@ -19,6 +19,7 @@ URL of project API documentation (https://catmeow123456.github.io/TacticLearning
 | T | myExactSymm | Given a statement, try to close the goal with that or with its symm
 | T | myAssumption | Given a statement, try to close the goal with some hyps or its symm version
 | T | showtype | 给定一个类型，返回与该类型匹配的所有假设。有用的函数： `ListLocalDeclWithType` 与 `FvarIdsToMessageData`
+| T | addhyp `name` : coeff `id` of `poly` |  添加一个假设，该假设的形式为 `poly.coeff i = ...` 即这个 Tactic 帮我们自动计算了某个具体多项式的某一项系数
 
 ## Reference
 
