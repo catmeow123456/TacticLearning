@@ -6,3 +6,4 @@ Authors: Youle Fang, Wenhao Xu
 import «TacticLearning».rwneq
 import «TacticLearning».diyassumption
 import «TacticLearning».Display.Basic
+import «TacticLearning».Poly.Basic

@@ -5,3 +5,17 @@
 This blueprint is a guide to the design and implementation of a series of simple tactics,
 and some useful tips about Meta Programming.
 
+\section{Lean 中元编程的基本概念}
+
+Lean 的编译过程是先将一个字符串 (String) 解析 (Parse) 成一个 Lean 的 Syntax 对象，
+也就是具体语法树 (Concrete Syntax Tree)，
+然后将语法树解释 (Elaborate) 为一个 Lean 的 Expr 对象，也就是抽象语法树 (Abstract Syntax Tree)。
+注意在 Parse 阶段，Syntax 对象只包含了语法信息，而没有语义信息。 而在 Elaborate 阶段，
+Lean 会根据上下文信息，将 Syntax Tree 中的每个节点解释为一个 Lean 一个带有具体含义的 Expr，
+从而构建出一个能够被 Lean 的内核理解和操作的表达式对象。例如 Lean 的内核能够求出一个 Expr 的类型是哪个 Expr
+，能够对 Expr 进行 lambda 演算的基本操作等等。
+
+元编程 (Meta Programming) 主要是围绕 Expr 对象展开的。在证明的过程中，我们会构造很多的 Expr 对象，
+希望用这些 Expr 作为材料来构造出一个定理的证明。Lean 提供了一系列的 API 来操作 Expr 对象，由于操作过程涉及到
+对当前 ProofState 的查询以及修改，因此这些操作都是在 Tactic Monad 中进行的。
+
