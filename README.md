@@ -15,11 +15,15 @@ URL of project API documentation (https://catmeow123456.github.io/TacticLearning
 | T | assumption |  尝试将所有条件和 goal 匹配 |
 | F | neqsimp1 | 自动检查条件中的不等式是否可以通过传递性证明 goal |
 | F | apply | 给定 a -> b  和 b，将目标转换成 a |
-| F | coeff_one | Given a polynomial, return coefficient of linear prop
 | T | myExactSymm | Given a statement, try to close the goal with that or with its symm
 | T | myAssumption | Given a statement, try to close the goal with some hyps or its symm version
 | T | showtype | `Display/Showdecl.lean` 给定一个类型，返回与该类型匹配的所有假设。有用的函数： `ListLocalDeclWithType` 与 `FvarIdsToMessageData`
 | T | addhyp `name` : coeff `id` of `poly` | `Poly/ComputeDegree.lean` 添加一个假设，该假设的形式为 `poly.coeff i = ...` 即这个 Tactic 帮我们自动计算了某个具体多项式的某一项系数
+| F | judge_continuous | 判断连续函数 tactic |
+| F | judge_differentialat | 判断是否可微分 |
+| F | compute_deriv | 计算初等函数（包括其复合）的导数 |
+| F | set_minimal | 对于给定集合 s ，求出其最小元素 a，证明 a 是它最小元 |
+
 
 ## Reference
 
