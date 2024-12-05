@@ -2,7 +2,9 @@ import TacticLearning.Continuous.Basic
 import Mathlib.Topology.Instances.Real
 import TacticLearning.Display.Basic
 
-variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y] [Add Y] [ContinuousAdd Y]
+variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+variable [Add Y] [ContinuousAdd Y]
+variable [Mul Y] [ContinuousMul Y]
 
 example (f₁ f₂ : X → Y) (h₁ : Continuous f₁) (h₂ : Continuous f₂):
     Continuous (f₁ + f₂) := by
@@ -18,4 +20,9 @@ example : Continuous (fun x : ℝ => x * x) := by
   exact continuous_id
   exact continuous_id
 
-#expr [Nat.zero + Nat.zero]
+example : Continuous (fun x : ℝ => x * x) := by
+  continuity
+
+example (f₁ f₂: X → Y) (h₁ : Continuous f₁) (h₂ : Continuous f₂):
+    Continuous (f₁ + (f₂ * f₂ + f₂) * f₁) := by
+  continuous
