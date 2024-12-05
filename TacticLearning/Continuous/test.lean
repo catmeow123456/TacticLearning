@@ -23,6 +23,9 @@ example : Continuous (fun x : ℝ => x * x) := by
 example : Continuous (fun x : ℝ => x * x) := by
   continuity
 
-example (f₁ f₂: X → Y) (h₁ : Continuous f₁) (h₂ : Continuous f₂):
-    Continuous (f₁ + (f₂ * f₂ + f₂) * f₁) := by
+example (f₁ f₂: Y → Y) (h₁ : Continuous f₁) (h₂ : Continuous f₂)
+  (f₃: X → Y) (f₄: Y → X) (h₃ : Continuous f₃) (h₄ : Continuous f₄) :
+    Continuous (
+      (f₁ + (f₂ * (f₂ ∘ f₁) + f₂) * f₁ + id) ∘ (f₃ ∘ f₄ ∘ f₃)
+    ) := by
   continuous

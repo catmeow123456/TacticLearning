@@ -15,6 +15,10 @@ def getLemmaRecommended (e : Expr) : Option (Name × List Expr) :=
       some (``Continuous.add, [f₁, f₂])
     | (``HMul.hMul, #[_, _, _, _, f₁, f₂]) =>
       some (``Continuous.mul, [f₁, f₂])
+    | (``id, _) =>
+      some (``continuous_id, [])
+    | (``Function.comp, #[_, _, _, f₁, f₂]) =>
+      some (``Continuous.comp, [f₁, f₂])
     | _ => none
   | _ => none
 
