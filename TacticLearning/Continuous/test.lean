@@ -1,7 +1,5 @@
-import TacticLearning.Continuous.Basic
-import Mathlib.Topology.Instances.Real
 import TacticLearning.Display.Basic
--- import Mathlib.Data.Complex.Exponential
+import TacticLearning.Continuous.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 
 variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
