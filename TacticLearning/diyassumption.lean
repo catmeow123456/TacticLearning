@@ -206,7 +206,3 @@ example (g : 8 = 9) (h : ∀ i:Nat, i = 1) : 1 = 42 := by
   myExactSymm g
   -- myExactSymm w
   myExactSymm (h _)
-
-open Polynomial
-
-example : (1 + X : ℤ[X]).degree = 1 := by compute_degree!
